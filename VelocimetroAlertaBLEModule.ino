@@ -1,24 +1,30 @@
-#define SENSOR_CADENCE  A0
-#define SENSOR_TEMP     A5
+#include <SoftwareSerial.h>
 
+#define PIN_TX_BLE  10
+#define PIN_RX_BLE  11
+#define SENSOR_CADENCE  9
+#define SENSOR_TEMP     A4
+
+SoftwareSerial mySerial(PIN_TX_BLE, PIN_RX_BLE); // RX, TX
 /**
- * Setup para Bluetooth - Comandos AT   
+ * Setup para Bluetooth LE - HM-10 - Comandos AT   
  * 
-  Serial.print("AT");//Comando para verificar 'ok'
+  mySerial.print("AT+VERSION");//Comando para verificar 'ok'
   delay(1000);
-  Serial.print("AT+VERSION");//Comando para verificar versão
+  mySerial.print("AT+BAUD");//Comando para verificar velocidade canal
   delay(1000);
-  Serial.print("AT+PIN1342"); //Define senha para 1342
+  mySerial.print("AT+TYPE");//Comando para verificar velocidade canal
   delay(1000);
-  Serial.print("AT+NAMEHelpDev-Cadence"); //Define nome para HelpDev
+  mySerial.print("AT+NAMEVelAlert-BLE");
   delay(1000);
  *
  */
 void setup() {
+  pinMode(SENSOR_CADENCE,INPUT);
+  pinMode(SENSOR_TEMP,INPUT);
+  Serial.begin(9600);//Inicia Serial
+  mySerial.begin(9600);//Inicia bluetooth
   delay(1000);
-  Serial.begin(9600);//Inicia bluetooth
-  delay(1000);
-
 }
 
 int count = 0;
@@ -28,6 +34,10 @@ int rpm = 0;
 boolean inRead = false;
 
 void loop() {
+  if (mySerial.available()) {
+    Serial.write(mySerial.read());
+  }
+  
   if(HIGH == digitalRead(SENSOR_CADENCE)){
     if(!inRead){
       inRead=true;
@@ -44,7 +54,7 @@ void loop() {
     inRead=false;
   }
   
-  temp += (float(analogRead(SENSOR_TEMP))*5/(1023))/0.01;
+  temp += (float(analogRead(SENSOR_TEMP))*3.3/(1023))/0.01;
   
   if(++count == 10){
     if(rpm>0){
@@ -56,7 +66,9 @@ void loop() {
         }
       }
     }
-    Serial.println("{temp:"+String(temp/10)+",rpm:"+String(rpm)+"}");
+    String out = "{temp:"+String(temp/10)+",rpm:"+String(rpm)+"}";
+    mySerial.println(out);
+    Serial.println(out);
     count=0;
     temp=0;
   }
