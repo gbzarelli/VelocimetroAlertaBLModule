@@ -1,11 +1,13 @@
 #include <SoftwareSerial.h>
+#include "DHT.h"
 
-#define PIN_TX_BLE  10
-#define PIN_RX_BLE  11
-#define SENSOR_CADENCE  9
-#define SENSOR_TEMP     A4
+//#define SENSOR_TEMP     A4
+#define PIN_TX_BLE      11
+#define PIN_RX_BLE      10
+#define SENSOR_CADENCE  12
+#define DHT_PIN         A3
 
-SoftwareSerial mySerial(PIN_TX_BLE, PIN_RX_BLE); // RX, TX
+void sendData();
 /**
  * Setup para Bluetooth LE - HM-10 - Comandos AT   
  * 
@@ -19,26 +21,28 @@ SoftwareSerial mySerial(PIN_TX_BLE, PIN_RX_BLE); // RX, TX
   delay(1000);
  *
  */
-void setup() {
-  pinMode(SENSOR_CADENCE,INPUT);
-  pinMode(SENSOR_TEMP,INPUT);
-  Serial.begin(9600);//Inicia Serial
-  mySerial.begin(9600);//Inicia bluetooth
-  delay(1000);
-}
+SoftwareSerial mySerial(PIN_TX_BLE, PIN_RX_BLE); // RX, TX
+DHT dht;
 
-int count = 0;
-float temp = 0;
+int temperature = -1;
+int humidity = -1;
+int err=0;
 long tmpTime = -1;
 int rpm = 0;
 boolean inRead = false;
+long mi;
+
+void setup() {
+  pinMode(SENSOR_CADENCE,INPUT);
+  mySerial.begin(9600);//Inicia bluetooth
+  delay(1000);
+  dht.setup(DHT_PIN);
+  mi = millis();
+}
 
 void loop() {
-  if (mySerial.available()) {
-    Serial.write(mySerial.read());
-  }
-  
-  if(HIGH == digitalRead(SENSOR_CADENCE)){
+  //Se leu o sensor (pullUP)
+  if(LOW == digitalRead(SENSOR_CADENCE)){
     if(!inRead){
       inRead=true;
       if(tmpTime == -1){
@@ -48,30 +52,42 @@ void loop() {
         tmpTime = millis();
         rpm = 60000 / timeLoop;
         if(rpm<0){ rpm=0; }
+        sendData();
       }
     }
-  }else if(inRead){
+  }else if(inRead){//Sensor sem leitura apos uma leitura
     inRead=false;
-  }
-  
-  temp += (float(analogRead(SENSOR_TEMP))*3.3/(1023))/0.01;
-  
-  if(++count == 10){
-    if(rpm>0){
-      long timeLoop = millis() - tmpTime;
-      if(timeLoop>0){
+  }else if( (millis()-mi) >= 2000 ){//Se passou 2seg sem leitura! (abaixo de 30rpm) - calculo automatico
+      if(rpm>0){
+        //Pega a diferenca de tempo da ultima leitura
+        long timeLoop = millis() - tmpTime;
         int rpmx = 60000 / timeLoop;
+        //Atribui novo rpm se ele for menor que o lido anteriormente
+        //pois é um calculo independente do giro, para exibição em tempo real.
         if(rpmx >= 0 && rpmx < rpm){
           rpm = rpmx;
         }
       }
-    }
-    String out = "{temp:"+String(temp/10)+",rpm:"+String(rpm)+"}";
-    mySerial.println(out);
-    Serial.println(out);
-    count=0;
-    temp=0;
-  }
-  
-  delay(100);
+      sendData();
+  }   
 }
+
+void sendData(){
+    mi = millis();
+    int tmpHumidity = dht.getHumidity();
+    int tmpTemperature = dht.getTemperature();
+    
+    if(String(dht.getStatusString()).equals("OK")){
+      err=0;
+      humidity = tmpHumidity;
+      temperature = tmpTemperature;
+    }else{
+       if(++err>5){
+        temperature=-1;
+        humidity=-1;
+       }
+    }
+    String out = "{temp:"+String(temperature)+",hm:"+String(humidity)+",rpm:"+String(rpm)+"}";
+    mySerial.println(out);
+}
+
