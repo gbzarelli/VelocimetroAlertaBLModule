@@ -7,7 +7,12 @@
 #define SENSOR_CADENCE  12
 #define DHT_PIN         A3
 
-void sendData();
+#define COD_SEND          "1"
+#define COD_ENABLE_AUTO   "2"
+#define COD_DISABLE_AUTO  "3"
+#define COD_READ_AUTO     "4"
+
+void writeData();
 /**
  * Setup para Bluetooth LE - HM-10 - Comandos AT   
  * 
@@ -31,6 +36,8 @@ long tmpTime = -1;
 int rpm = 0;
 boolean inRead = false;
 long mi;
+String data="{null}";
+boolean automaticSendData=false;
 
 void setup() {
   pinMode(SENSOR_CADENCE,INPUT);
@@ -41,6 +48,18 @@ void setup() {
 }
 
 void loop() {
+  if(mySerial.available()>0){
+    String valueRead = mySerial.readString();
+    if(valueRead.equals(COD_SEND)){
+      mySerial.println(data);
+    }else if(valueRead.equals(COD_ENABLE_AUTO)){
+      automaticSendData=true;
+    }else if(valueRead.equals(COD_DISABLE_AUTO)){
+      automaticSendData=false;
+    }else if(valueRead.equals(COD_READ_AUTO)){
+      mySerial.println(automaticSendData);
+    }
+  }
   //Se leu o sensor (pullUP)
   if(LOW == digitalRead(SENSOR_CADENCE)){
     if(!inRead){
@@ -52,7 +71,7 @@ void loop() {
         tmpTime = millis();
         rpm = 60000 / timeLoop;
         if(rpm<0){ rpm=0; }
-        sendData();
+        writeData();
       }
     }
   }else if(inRead){//Sensor sem leitura apos uma leitura
@@ -68,11 +87,11 @@ void loop() {
           rpm = rpmx;
         }
       }
-      sendData();
+      writeData();
   }   
 }
 
-void sendData(){
+void writeData(){
     mi = millis();
     int tmpHumidity = dht.getHumidity();
     int tmpTemperature = dht.getTemperature();
@@ -87,7 +106,9 @@ void sendData(){
         humidity=-1;
        }
     }
-    String out = "{temp:"+String(temperature)+",hm:"+String(humidity)+",rpm:"+String(rpm)+"}";
-    mySerial.println(out);
+    data = "{\"atemp\":"+String(temperature)+",\"rhu\":"+String(humidity)+",\"cad\":"+String(rpm)+"}";
+    if(automaticSendData){
+      mySerial.println(data);
+    }
 }
 
