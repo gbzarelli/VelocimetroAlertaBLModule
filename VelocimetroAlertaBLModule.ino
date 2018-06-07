@@ -36,6 +36,7 @@ long tmpTime = -1;
 int rpm = 0;
 boolean inRead = false;
 long mi;
+long sec;
 String data="{null}";
 boolean automaticSendData=false;
 
@@ -47,19 +48,24 @@ void setup() {
   mi = millis();
 }
 
+boolean markToRead=false;
+
 void loop() {
-  if(mySerial.available()>0){
-    String valueRead = mySerial.readString();
-    if(valueRead.equals(COD_SEND)){
-      mySerial.println(data);
-    }else if(valueRead.equals(COD_ENABLE_AUTO)){
-      automaticSendData=true;
-    }else if(valueRead.equals(COD_DISABLE_AUTO)){
-      automaticSendData=false;
-    }else if(valueRead.equals(COD_READ_AUTO)){
-      mySerial.println(automaticSendData);
+  if(markToRead){
+    if(mySerial.available()>0){
+      String valueRead = mySerial.readString();
+      if(valueRead.equals(COD_SEND)){
+        mySerial.println(data);
+      }else if(valueRead.equals(COD_ENABLE_AUTO)){
+        automaticSendData=true;
+      }else if(valueRead.equals(COD_DISABLE_AUTO)){
+        automaticSendData=false;
+      }else if(valueRead.equals(COD_READ_AUTO)){
+        mySerial.println(automaticSendData);
+      }
     }
   }
+  markToRead=false;
   //Se leu o sensor (pullUP)
   if(LOW == digitalRead(SENSOR_CADENCE)){
     if(!inRead){
@@ -110,5 +116,6 @@ void writeData(){
     if(automaticSendData){
       mySerial.println(data);
     }
+    markToRead=true;
 }
 
