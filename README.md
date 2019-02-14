@@ -1,3 +1,6 @@
+<img></img>
+<img src="https://github.com/helpdeveloper/VelocimetroAlertaBLModule/blob/master/images/IMG_20180527_142320657.jpg" width="256">
+
 ## VelocimetroAlertaBLModule
 
 Project developed to realize a low cost cadence sensor. Using an Arduino Pro mini, bluetooth module and DHT temperature sensor. 
