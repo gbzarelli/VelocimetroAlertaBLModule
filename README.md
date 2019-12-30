@@ -1,9 +1,9 @@
 
 # Velocimetro Alerta Bluetooth Module
 
-<img src="images/IMG_20180526_175001664.jpg" width="128"> . <img src="images/IMG_20180526_175727749.jpg" width="128"> . <img src="images/IMG_20180526_175733200.jpg" width="128">
+<img src="images/IMG_20180526_175001664.jpg" width="220"> . <img src="images/IMG_20180526_175727749.jpg" width="220"> . <img src="images/IMG_20180526_175733200.jpg" width="220">
 
-<img src="images/IMG_20180526_175807842.jpg" width="128"> . <img src="images/IMG_20180527_142320657.jpg" width="128"> .  <img src="images/IMG_20180527_143319450_LL.jpg" width="128">
+<img src="images/IMG_20180526_175807842.jpg" width="220"> . <img src="images/IMG_20180527_142320657.jpg" width="220"> .  <img src="images/IMG_20180527_143319450_LL.jpg" width="220">
 
 [EN] Project developed to realize a low cost cadence sensor. Using an Arduino Pro mini, bluetooth module and DHT temperature sensor.
 
