@@ -1,7 +1,6 @@
 #include <SoftwareSerial.h>
 #include "DHT.h"
 
-//#define SENSOR_TEMP     A4
 #define PIN_TX_BLE      11
 #define PIN_RX_BLE      10
 #define SENSOR_CADENCE  12
